@@ -20,6 +20,7 @@ import com.wilayah.entity.KabupatenEntity;
 import com.wilayah.entity.ProvinsiEntity;
 import com.wilayah.repository.KabupatenRepository;
 import com.wilayah.repository.ProvinsiRepository;
+import com.wilayah.service.KabupatenServiceImpl;
 
 @RestController
 @RequestMapping("kabupaten")
@@ -31,6 +32,9 @@ public class KabupatenController {
 	@Autowired
 	private ProvinsiRepository provinsiRepository;
 	
+	@Autowired
+	private KabupatenServiceImpl service;
+	
 	//post kab berdasarkan id prov yg sudah ada
 	@PostMapping("/post")
 	public ResponseEntity<?> postKab(@RequestBody KabupatenDto dto){
@@ -41,14 +45,7 @@ public class KabupatenController {
 			result.setData(null);
 			return ResponseEntity.badRequest().body(result);
 		} else {
-			KabupatenEntity kabupatenEntity = new KabupatenEntity();
-			ProvinsiEntity provinsiEntity = provinsiRepository.findByKodeProvinsi(dto.getKodeProvinsi());
-			//set provinsiId
-			kabupatenEntity.setProvinsiEntity(provinsiEntity);
-			kabupatenEntity.setNamaKabupaten(dto.getNamaKabupaten());
-			kabupatenEntity.setKodeKabupaten(dto.getKodeKabupaten());
-			kabupatenRepository.save(kabupatenEntity);
-			
+			KabupatenEntity kabupatenEntity = service.post(dto);
 			StatusMessageDto<KabupatenEntity> result = new StatusMessageDto<>();
 			result.setStatus(HttpStatus.OK.value());
 			result.setMessage("Success");
@@ -95,10 +92,6 @@ public class KabupatenController {
 		}
 	}
 	
-	
-	
-	//KENA SERIALIZABLE ERROR
-	
 	@GetMapping("/get-all")
 	public ResponseEntity<?> getAllKabupaten(){
 		List<KabupatenEntity> kabupatenEntities = kabupatenRepository.findAll();
@@ -113,17 +106,13 @@ public class KabupatenController {
 	
 	@PutMapping("/update/{idKabupaten}")
 	public ResponseEntity<?> update(@PathVariable Integer idKabupaten, @RequestBody KabupatenDto dto){
-		KabupatenEntity kabupatenEntity = kabupatenRepository.findById(idKabupaten).get();
-		kabupatenEntity.setNamaKabupaten(dto.getNamaKabupaten());
-		kabupatenEntity.setKodeKabupaten(dto.getKodeKabupaten());
-		kabupatenRepository.save(kabupatenEntity);
+		KabupatenEntity kabupatenEntity = service.put(idKabupaten, dto);
 		return ResponseEntity.ok(kabupatenEntity);
 	}
 	
 	@DeleteMapping("/delete/{idKabupaten}")
 	public ResponseEntity<?> delete(@PathVariable Integer idKabupaten) {
-		KabupatenEntity kabupatenEntity = kabupatenRepository.findById(idKabupaten).get();
-		kabupatenRepository.delete(kabupatenEntity);
+		KabupatenEntity kabupatenEntity = service.delete(idKabupaten);
 		return ResponseEntity.ok(kabupatenEntity);
 	}
 }
